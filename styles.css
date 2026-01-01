@@ -129,6 +129,11 @@ html {
     letter-spacing: 0.02em;
 }
 
+.logo h1 span {
+    color: var(--accent);
+    font-style: italic;
+}
+
 .logo h1::after {
     content: '';
     display: inline-block;
@@ -254,6 +259,8 @@ html {
     border: none;
     cursor: pointer;
     padding: 8px;
+    z-index: 1001;
+    position: relative;
 }
 
 .mobile-menu-toggle span {
@@ -262,6 +269,19 @@ html {
     background: var(--primary);
     transition: all var(--duration) var(--ease-out);
     border-radius: 2px;
+    transform-origin: center;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(6px, 6px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(6px, -6px);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1294,12 +1314,14 @@ section {
         right: 0;
         bottom: 0;
         flex-direction: column;
-        background: var(--white);
+        background: rgba(10, 10, 10, 0.98);
+        backdrop-filter: blur(20px);
         padding: 6rem 2rem 2rem;
         gap: 1.5rem;
         transform: translateX(100%);
         transition: transform var(--duration) var(--ease-out);
         justify-content: flex-start;
+        z-index: 1000;
     }
 
     .nav-menu.active {
@@ -1308,7 +1330,25 @@ section {
     
     .nav-menu a {
         font-size: var(--fs-xl);
+        color: var(--primary);
     }
+    
+    .nav-menu li {
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.3s ease;
+    }
+    
+    .nav-menu.active li {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .nav-menu.active li:nth-child(1) { transition-delay: 0.1s; }
+    .nav-menu.active li:nth-child(2) { transition-delay: 0.15s; }
+    .nav-menu.active li:nth-child(3) { transition-delay: 0.2s; }
+    .nav-menu.active li:nth-child(4) { transition-delay: 0.25s; }
+    .nav-menu.active li:nth-child(5) { transition-delay: 0.3s; }
 
     .dropdown-menu {
         position: static;
@@ -1320,6 +1360,11 @@ section {
         padding-left: 1rem;
         background: transparent;
         border: none;
+    }
+    
+    .dropdown-menu a {
+        color: var(--text-muted) !important;
+        font-size: var(--fs-lg) !important;
     }
     
     .hero {
