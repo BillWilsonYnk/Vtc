@@ -41,8 +41,7 @@
     <!-- Additional SEO -->
     <meta name="theme-color" content="#0a0a0a">
     <meta name="msapplication-TileColor" content="#0a0a0a">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=yes">
     
     <!-- Favicon -->
@@ -267,7 +266,7 @@
         if (GOOGLE_MAPS_API_KEY && GOOGLE_MAPS_API_KEY !== 'YOUR_API_KEY') {
             console.log('Loading Google Maps API script...');
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,geometry,directions&language=fr&callback=initGoogleMaps`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry&language=fr&callback=initGoogleMaps&loading=async`;
             script.async = true;
             script.defer = true;
             script.onerror = function(error) {
