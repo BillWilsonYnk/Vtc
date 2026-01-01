@@ -4,9 +4,96 @@ let departureMarker;
 let arrivalMarker;
 let directionsService;
 let directionsRenderer;
-let departureAutocomplete;
-let arrivalAutocomplete;
 let geocoder;
+let searchTimeout = null;
+
+// Setup address input with geocoding suggestions
+function setupAddressInputMain(inputElement, type) {
+    const container = inputElement.parentElement;
+    let suggestionsDiv = container.querySelector('.address-suggestions');
+    
+    if (!suggestionsDiv) {
+        suggestionsDiv = document.createElement('div');
+        suggestionsDiv.className = 'address-suggestions';
+        suggestionsDiv.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `;
+        container.style.position = 'relative';
+        container.appendChild(suggestionsDiv);
+    }
+    
+    inputElement.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        if (query.length < 3) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchAddressMain(query, suggestionsDiv, inputElement, type);
+        }, 300);
+    });
+    
+    inputElement.addEventListener('blur', () => {
+        setTimeout(() => { suggestionsDiv.style.display = 'none'; }, 200);
+    });
+    
+    inputElement.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+function searchAddressMain(query, suggestionsDiv, inputElement, type) {
+    if (!geocoder) return;
+    
+    geocoder.geocode({ 
+        address: `${query}, France`,
+        componentRestrictions: { country: 'fr' }
+    }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+            suggestionsDiv.innerHTML = '';
+            
+            results.slice(0, 5).forEach((result) => {
+                const item = document.createElement('div');
+                item.style.cssText = `padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 14px;`;
+                item.textContent = result.formatted_address;
+                
+                item.addEventListener('mouseenter', () => { item.style.background = 'rgba(201, 169, 98, 0.2)'; });
+                item.addEventListener('mouseleave', () => { item.style.background = 'transparent'; });
+                
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    inputElement.value = result.formatted_address;
+                    suggestionsDiv.style.display = 'none';
+                    updateMap();
+                    calculateDistanceWithGoogleMaps();
+                });
+                
+                suggestionsDiv.appendChild(item);
+            });
+            
+            suggestionsDiv.style.display = 'block';
+        } else {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
 
 // Initialize Google Maps
 function initializeGoogleMaps() {
@@ -37,36 +124,15 @@ function initializeGoogleMaps() {
         });
         geocoder = new google.maps.Geocoder();
 
-        // Initialize autocomplete for departure
+        // Initialize address inputs with geocoding
         const departureInput = document.getElementById('departure');
         if (departureInput) {
-            departureAutocomplete = new google.maps.places.Autocomplete(departureInput, {
-                componentRestrictions: { country: 'fr' },
-                fields: ['geometry', 'formatted_address']
-            });
-            departureAutocomplete.addListener('place_changed', () => {
-                const place = departureAutocomplete.getPlace();
-                if (place.geometry) {
-                    updateMap();
-                    calculateDistanceWithGoogleMaps();
-                }
-            });
+            setupAddressInputMain(departureInput, 'departure');
         }
 
-        // Initialize autocomplete for arrival
         const arrivalInput = document.getElementById('arrival');
         if (arrivalInput) {
-            arrivalAutocomplete = new google.maps.places.Autocomplete(arrivalInput, {
-                componentRestrictions: { country: 'fr' },
-                fields: ['geometry', 'formatted_address']
-            });
-            arrivalAutocomplete.addListener('place_changed', () => {
-                const place = arrivalAutocomplete.getPlace();
-                if (place.geometry) {
-                    updateMap();
-                    calculateDistanceWithGoogleMaps();
-                }
-            });
+            setupAddressInputMain(arrivalInput, 'arrival');
         }
 
         return true;

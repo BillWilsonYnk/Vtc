@@ -7,8 +7,6 @@ let departureMarker;
 let arrivalMarker;
 let directionsService;
 let directionsRenderer;
-let departureAutocomplete;
-let arrivalAutocomplete;
 let geocoder;
 let currentMapClick = null;
 
@@ -35,6 +33,159 @@ let bookingData = {
 };
 
 let currentStep = 1;
+let searchTimeout = null;
+
+// Setup address input with geocoding suggestions
+function setupAddressInput(inputElement, type) {
+    // Create suggestions container
+    const container = inputElement.parentElement;
+    let suggestionsDiv = container.querySelector('.address-suggestions');
+    
+    if (!suggestionsDiv) {
+        suggestionsDiv = document.createElement('div');
+        suggestionsDiv.className = 'address-suggestions';
+        suggestionsDiv.style.cssText = `
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `;
+        container.style.position = 'relative';
+        container.appendChild(suggestionsDiv);
+    }
+    
+    // Debounced search on input
+    inputElement.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        
+        if (searchTimeout) clearTimeout(searchTimeout);
+        
+        if (query.length < 3) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchAddress(query, suggestionsDiv, inputElement, type);
+        }, 300);
+    });
+    
+    // Geocode on blur if no suggestion selected
+    inputElement.addEventListener('blur', () => {
+        setTimeout(() => {
+            suggestionsDiv.style.display = 'none';
+        }, 200);
+    });
+    
+    // Geocode on Enter key
+    inputElement.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            suggestionsDiv.style.display = 'none';
+            geocodeAndUpdate(inputElement.value, type);
+        }
+    });
+}
+
+// Search address using Geocoding API
+function searchAddress(query, suggestionsDiv, inputElement, type) {
+    if (!geocoder) {
+        console.warn('Geocoder not initialized');
+        return;
+    }
+    
+    // Add France bias to search
+    const searchQuery = query.includes('France') ? query : `${query}, France`;
+    
+    geocoder.geocode({ 
+        address: searchQuery,
+        componentRestrictions: { country: 'fr' }
+    }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+            suggestionsDiv.innerHTML = '';
+            
+            // Show up to 5 results
+            const limitedResults = results.slice(0, 5);
+            
+            limitedResults.forEach((result, index) => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.style.cssText = `
+                    padding: 12px 15px;
+                    cursor: pointer;
+                    border-bottom: 1px solid rgba(255,255,255,0.1);
+                    color: #fff;
+                    font-size: 14px;
+                    transition: background 0.2s;
+                `;
+                item.textContent = result.formatted_address;
+                
+                item.addEventListener('mouseenter', () => {
+                    item.style.background = 'rgba(201, 169, 98, 0.2)';
+                });
+                
+                item.addEventListener('mouseleave', () => {
+                    item.style.background = 'transparent';
+                });
+                
+                item.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    inputElement.value = result.formatted_address;
+                    suggestionsDiv.style.display = 'none';
+                    
+                    // Update map and calculate distance
+                    const place = {
+                        geometry: result.geometry,
+                        formatted_address: result.formatted_address
+                    };
+                    updateMapWithPlace(place, type);
+                    calculateDistanceWithGoogleMaps();
+                });
+                
+                suggestionsDiv.appendChild(item);
+            });
+            
+            suggestionsDiv.style.display = 'block';
+        } else {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+// Geocode address and update map
+function geocodeAndUpdate(address, type) {
+    if (!geocoder || !address.trim()) return;
+    
+    const searchQuery = address.includes('France') ? address : `${address}, France`;
+    
+    geocoder.geocode({ 
+        address: searchQuery,
+        componentRestrictions: { country: 'fr' }
+    }, (results, status) => {
+        if (status === 'OK' && results && results.length > 0) {
+            const result = results[0];
+            const inputElement = document.getElementById(type === 'departure' ? 'departure' : 'arrival');
+            if (inputElement) {
+                inputElement.value = result.formatted_address;
+            }
+            
+            const place = {
+                geometry: result.geometry,
+                formatted_address: result.formatted_address
+            };
+            updateMapWithPlace(place, type);
+            calculateDistanceWithGoogleMaps();
+        }
+    });
+}
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
@@ -290,38 +441,17 @@ function initializeGoogleMaps() {
         });
         geocoder = new google.maps.Geocoder();
         
-        // Initialize autocomplete for departure
+        // Initialize address search with geocoding (compatible with all accounts)
         const departureInput = document.getElementById('departure');
+        const arrivalInput = document.getElementById('arrival');
+        
+        // Create suggestion containers
         if (departureInput) {
-            departureAutocomplete = new google.maps.places.Autocomplete(departureInput, {
-                componentRestrictions: { country: 'fr' },
-                fields: ['geometry', 'formatted_address', 'address_components']
-            });
-            
-            departureAutocomplete.addListener('place_changed', () => {
-                const place = departureAutocomplete.getPlace();
-                if (place.geometry) {
-                    updateMapWithPlace(place, 'departure');
-                    calculateDistanceWithGoogleMaps();
-                }
-            });
+            setupAddressInput(departureInput, 'departure');
         }
         
-        // Initialize autocomplete for arrival
-        const arrivalInput = document.getElementById('arrival');
         if (arrivalInput) {
-            arrivalAutocomplete = new google.maps.places.Autocomplete(arrivalInput, {
-                componentRestrictions: { country: 'fr' },
-                fields: ['geometry', 'formatted_address', 'address_components']
-            });
-            
-            arrivalAutocomplete.addListener('place_changed', () => {
-                const place = arrivalAutocomplete.getPlace();
-                if (place.geometry) {
-                    updateMapWithPlace(place, 'arrival');
-                    calculateDistanceWithGoogleMaps();
-                }
-            });
+            setupAddressInput(arrivalInput, 'arrival');
         }
         
         // Map click handler
