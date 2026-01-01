@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+    
+    <!-- Page principale -->
+    <url>
+        <loc>https://hscentraledriver.fr/</loc>
+        <lastmod>2024-12-31</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    
+    <!-- Conditions générales de vente -->
+    <url>
+        <loc>https://hscentraledriver.fr/conditions.html</loc>
+        <lastmod>2024-12-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    
+    <!-- Mentions légales -->
+    <url>
+        <loc>https://hscentraledriver.fr/mentions.html</loc>
+        <lastmod>2024-12-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    
+    <!-- Avertissement -->
+    <url>
+        <loc>https://hscentraledriver.fr/avertissement.html</loc>
+        <lastmod>2024-12-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+    
+    <!-- Politique de confidentialité -->
+    <url>
+        <loc>https://hscentraledriver.fr/confidentialite.html</loc>
+        <lastmod>2024-12-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    
+    <!-- Politique de cookies -->
+    <url>
+        <loc>https://hscentraledriver.fr/cookies.html</loc>
+        <lastmod>2024-12-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+    
+</urlset>
+
+

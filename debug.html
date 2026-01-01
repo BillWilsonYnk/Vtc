@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug - Test des erreurs</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .error { color: red; background: #ffe6e6; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { color: green; background: #e6ffe6; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Test de débogage</h1>
+    <div id="results"></div>
+    <button onclick="testScript()">Tester script.js</button>
+    <button onclick="testLocation()">Tester géolocalisation</button>
+    <button onclick="testElements()">Tester éléments DOM</button>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        function testScript() {
+            results.innerHTML = '';
+            addResult('Test du chargement de script.js...', 'info');
+            
+            const script = document.createElement('script');
+            script.src = 'script.js';
+            script.onload = () => {
+                addResult('✅ script.js chargé avec succès', 'success');
+                testFunctions();
+            };
+            script.onerror = () => {
+                addResult('❌ Erreur lors du chargement de script.js', 'error');
+            };
+            document.head.appendChild(script);
+        }
+        
+        function testFunctions() {
+            setTimeout(() => {
+                const functions = ['getCurrentLocation', 'calculateDistance', 'updatePrice', 'validateStep1'];
+                functions.forEach(func => {
+                    if (typeof window[func] === 'function') {
+                        addResult(`✅ Fonction ${func} existe`, 'success');
+                    } else {
+                        addResult(`❌ Fonction ${func} n'existe pas`, 'error');
+                    }
+                });
+            }, 500);
+        }
+        
+        function testLocation() {
+            results.innerHTML = '';
+            addResult('Test de la géolocalisation...', 'info');
+            
+            if (!navigator.geolocation) {
+                addResult('❌ Géolocalisation non supportée', 'error');
+                return;
+            }
+            
+            addResult('✅ Géolocalisation supportée', 'success');
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    addResult(`✅ Position obtenue: ${pos.coords.latitude}, ${pos.coords.longitude}`, 'success');
+                },
+                (err) => {
+                    addResult(`❌ Erreur géolocalisation: ${err.message}`, 'error');
+                }
+            );
+        }
+        
+        function testElements() {
+            results.innerHTML = '';
+            addResult('Test des éléments DOM...', 'info');
+            
+            // Charger index.html dans un iframe pour tester
+            const iframe = document.createElement('iframe');
+            iframe.src = 'index.html';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = () => {
+                setTimeout(() => {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        const elements = ['departure', 'arrival', 'getLocationBtn', 'nextStep1'];
+                        
+                        elements.forEach(id => {
+                            const el = iframeDoc.getElementById(id);
+                            if (el) {
+                                addResult(`✅ Élément #${id} trouvé`, 'success');
+                            } else {
+                                addResult(`❌ Élément #${id} non trouvé`, 'error');
+                            }
+                        });
+                    } catch (e) {
+                        addResult(`❌ Erreur CORS: ${e.message}`, 'error');
+                    }
+                }, 1000);
+            };
+        }
+    </script>
+</body>
+</html>
+

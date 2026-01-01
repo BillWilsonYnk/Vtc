@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - HS Centrale Driver</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #c0392b; }
+        .error { color: red; margin-top: 5px; }
+        .success { color: green; margin-top: 5px; }
+        #result { margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Test du formulaire de réservation</h1>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label for="departure">Adresse de départ *</label>
+            <input type="text" id="departure" placeholder="Ex: Paris" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="arrival">Adresse d'arrivée *</label>
+            <input type="text" id="arrival" placeholder="Ex: Aéroport CDG" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="name">Nom complet *</label>
+            <input type="text" id="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" required>
+        </div>
+        
+        <button type="submit">Tester la réservation</button>
+    </form>
+    
+    <div id="result" style="display: none;"></div>
+    
+    <script>
+        console.log('Script chargé');
+        
+        const form = document.getElementById('testForm');
+        const result = document.getElementById('result');
+        
+        if (!form) {
+            console.error('Formulaire non trouvé');
+        } else {
+            console.log('Formulaire trouvé');
+        }
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Formulaire soumis');
+            
+            const departure = document.getElementById('departure').value;
+            const arrival = document.getElementById('arrival').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            if (!departure || !arrival || !name || !email) {
+                result.style.display = 'block';
+                result.innerHTML = '<div class="error">Veuillez remplir tous les champs</div>';
+                return;
+            }
+            
+            // Simuler un calcul de distance
+            const distance = Math.floor(Math.random() * 50) + 10;
+            const price = distance * 1.5;
+            
+            result.style.display = 'block';
+            result.innerHTML = `
+                <div class="success">
+                    <h3>✅ Réservation testée avec succès !</h3>
+                    <p><strong>Départ:</strong> ${departure}</p>
+                    <p><strong>Arrivée:</strong> ${arrival}</p>
+                    <p><strong>Nom:</strong> ${name}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p><strong>Distance:</strong> ${distance} km</p>
+                    <p><strong>Prix estimé:</strong> ${price.toFixed(2)} €</p>
+                </div>
+            `;
+        });
+        
+        console.log('Event listeners attachés');
+    </script>
+</body>
+</html>
+
